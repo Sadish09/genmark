@@ -34,7 +34,7 @@ docs/ - API reference
 # Supported Environments 
 - Native C++ 
 - Python for directly embedding into generation pipeline
-- WebAssembly for browser side deployments, supported via (emscripten)[https://github.com/emscripten-core/emscripten]
+- WebAssembly for browser side deployments, supported via [emscripten] (https://github.com/emscripten-core/emscripten)
 
 # Build 
 GenMark uses Cmake. 
