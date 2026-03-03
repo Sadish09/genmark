@@ -1,3 +1,6 @@
 [submodule "third_party/libsodium"]
 	path = third_party/libsodium
 	url = https://github.com/jedisct1/libsodium
+[submodule "third_party/ffmpeg"]
+	path = third_party/ffmpeg
+	url = https://github.com/FFmpeg/FFmpeg
