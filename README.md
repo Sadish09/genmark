@@ -37,19 +37,21 @@ docs/ - API reference
 - WebAssembly for browser side deployments, supported via [emscripten](https://github.com/emscripten-core/emscripten)
 
 # Build 
-GenMark uses Cmake. 
+GenMark builds two standalone binaries `genmark-creator` and `genmark-verifier` both are statically linked with libsodium.
+FFmpeg is required at runtime for media decoding but **not linked into the binary.**
 
-Basic build: 
-
-```cmake
-mkdir build 
-cd build 
-cmake .. 
-cmake --build
-``` 
+# Requirements 
+GenMark requires: 
+```
+C++ 20 or later
+Cmake => 3.2.0 
+Make or Ninja 
+libsodium (static build recommended)
+ffmpeg 6.x or higher 
+```
 
 # Documentation 
-Full documentation(eventually) including, 
+Full documentation including, 
 
 - API Design Goals 
 - Protocol details 
