@@ -5,7 +5,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <numbers>
+#include <numbers>  // std::numbers::pi (C++20)
 #include <vector>
 
 namespace genmark {
@@ -77,27 +77,31 @@ namespace {
 
 constexpr int BSIZE = 8;
 
-// ─── Compile-time cosine table ────────────────────────────────────────────────
+// ─── Cosine lookup table ──────────────────────────────────────────────────────
 //
-// cos_lut[u][x] = cos((2x+1)·u·π / 16)
+// kCos[u][x] = cos((2x+1)·u·π / 16)
 //
-// Stored as constexpr so it lives in .rodata with zero runtime init cost and
-// no threading hazard.  The compiler evaluates this at compile time.
+// std::cos is not constexpr in the standard (Clang strictly rejects it in
+// consteval/constexpr context even though GCC permits it as an extension).
+// We use a function-local static instead: C++11 guarantees that function-local
+// statics are initialised exactly once in a thread-safe manner, so this has
+// the same "initialise once, no race" property without relying on consteval.
 //
 // Note: both forward and inverse use the same cosine argument — the symmetry
 // of the DCT-II / DCT-III pair means the same table serves both directions.
 
 using CosLUT = std::array<std::array<double, BSIZE>, BSIZE>;
 
-consteval CosLUT build_cos_lut() {
-    CosLUT lut{};
-    for (int u = 0; u < BSIZE; ++u)
-        for (int x = 0; x < BSIZE; ++x)
-            lut[u][x] = std::cos((2.0 * x + 1.0) * u * std::numbers::pi / 16.0);
-    return lut;
+const CosLUT& cos_lut() noexcept {
+    static const CosLUT kCos = []() {
+        CosLUT lut{};
+        for (int u = 0; u < BSIZE; ++u)
+            for (int x = 0; x < BSIZE; ++x)
+                lut[u][x] = std::cos((2.0 * x + 1.0) * u * std::numbers::pi / 16.0);
+        return lut;
+    }();
+    return kCos;
 }
-
-constexpr CosLUT kCos = build_cos_lut();
 
 // ─── Normalisation factor ─────────────────────────────────────────────────────
 
@@ -112,6 +116,7 @@ constexpr double alpha(int k) noexcept {
 // independently and potentially inlined with LTO.
 
 void dct_block(double b[BSIZE][BSIZE]) noexcept {
+    const CosLUT& kCos = cos_lut();
     double tmp[BSIZE][BSIZE];
 
     for (int u = 0; u < BSIZE; ++u) {
@@ -131,6 +136,7 @@ void dct_block(double b[BSIZE][BSIZE]) noexcept {
 }
 
 void idct_block(double b[BSIZE][BSIZE]) noexcept {
+    const CosLUT& kCos = cos_lut();
     double tmp[BSIZE][BSIZE];
 
     for (int x = 0; x < BSIZE; ++x) {
